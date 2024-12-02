@@ -8,11 +8,19 @@ import java.util.Queue;
 // Class that implements a Breadth-First Search approach to solving Sudoku puzzles
 public class SudokuBFSSolver extends SudokuGraph {
 
+    private int nodesExpanded; // Counter for the number of nodes expanded
+
     // Constructor that initializes the solver with a given grid size
     public SudokuBFSSolver(int gridSize) {
         super(gridSize);
+        this.nodesExpanded = 0; // Initialize the counter
     }
-    
+
+    // Getter for the number of nodes expanded
+    public int getNodesExpanded() {
+        return nodesExpanded;
+    }
+
     @Override
     public List<Map<Integer, Integer>> solve() {
         // Store all valid solutions found
@@ -25,15 +33,23 @@ public class SudokuBFSSolver extends SudokuGraph {
         while (!queue.isEmpty()) {
             // Get the next puzzle state to examine
             Map<Integer, Integer> currentState = queue.poll();
-            // If current state is a complete solution, add to solutions list
+            nodesExpanded++; // Increment the counter when a node is expanded
+
+            // If current state is a complete solution, add to solutions list if valid
             if (isSolved(currentState)) {
-                solutions.add(new HashMap<>(currentState));
+                if (isValidSolution(currentState)) {
+                    solutions.add(new HashMap<>(currentState));
+                }
                 continue;
             }
 
             // Find the next empty cell to fill
             int nextCell = getNextEmptyCell(currentState);
-            // Try each valid number (1-9 for standard Sudoku)
+            if (nextCell == -1) {
+                continue; // No empty cells left; proceed to next state
+            }
+
+            // Try each valid number
             for (int choice : validChoices) {
                 // Check if the number can be legally placed in the cell
                 if (isValidChoice(currentState, nextCell, choice)) {
@@ -46,7 +62,7 @@ public class SudokuBFSSolver extends SudokuGraph {
             }
         }
 
-        // Return all solutions found (could be multiple for invalid puzzles)
+        // Return all solutions found
         return solutions;
     }
 }
