@@ -198,7 +198,6 @@ public class SudokuGenerator
             }
             System.out.println();
         }
-        System.out.println();
     }
 
    
