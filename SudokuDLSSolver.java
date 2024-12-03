@@ -1,18 +1,9 @@
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-/**
- * Sudoku solver using Depth-Limited Search (DLS) algorithm.
- * This class extends SudokuGraph and implements the DLS algorithm
- * to solve Sudoku puzzles, recording all possible solutions.
- *
- * Based on the research paper:
- * "Comparison Analysis of Breadth First Search and Depth Limited Search Algorithms in Sudoku Game"
- * by Reza Bustami et al.
- *
- * Modifications:
- * - Applied heuristics to prioritize nodes with fewer constraints.
- * - Adjusted the algorithm to work effectively on larger grids.
- */
+// Class that implements a Depth-Limited Search approach to solving Sudoku puzzles
 public class SudokuDLSSolver extends SudokuGraph {
 
     private int depthLimit; // Maximum depth for the DLS algorithm
@@ -26,17 +17,17 @@ public class SudokuDLSSolver extends SudokuGraph {
     }
 
     @Override
-    public List<int[]> solve() {
+    public List<Map<Integer, Integer>> solve() {
         // Store all valid solutions found
-        List<int[]> solutions = new ArrayList<>();
+        List<Map<Integer, Integer>> solutions = new ArrayList<>();
         // Start the recursive DLS from depth 0
-        int[] initialState = puzzleArray.clone();
+        Map<Integer, Integer> initialState = new HashMap<>(puzzle);
         depthLimitedSearch(initialState, 0, solutions);
         return solutions;
     }
 
     // Recursive method for Depth-Limited Search
-    private boolean depthLimitedSearch(int[] state, int depth, List<int[]> solutions) {
+    private boolean depthLimitedSearch(Map<Integer, Integer> state, int depth, List<Map<Integer, Integer>> solutions) {
         // Increment the node expansion counter
         nodesExpanded++;
 
@@ -44,7 +35,7 @@ public class SudokuDLSSolver extends SudokuGraph {
         if (isSolved(state)) {
             if (isValidSolution(state)) {
                 // Add a copy of the solution to the list
-                solutions.add(state.clone());
+                solutions.add(new HashMap<>(state));
             }
             return false; // Continue searching for other solutions
         }
@@ -54,24 +45,21 @@ public class SudokuDLSSolver extends SudokuGraph {
             return false; // Cut off the search at this depth
         }
 
-        // Find the next empty cell using Least Remaining Value heuristic
-        int nextCell = getNextEmptyCellWithLRV(state);
+        // Find the next empty cell
+        int nextCell = getNextEmptyCell(state);
         if (nextCell == -1) {
             return false; // No empty cells but puzzle is not solved, backtrack
         }
 
-        // Get valid choices for the next cell
-        Set<Integer> choices = getValidChoicesForCell(state, nextCell);
-
         // Try all valid choices for the next cell
-        for (int choice : choices) {
+        for (int choice : validChoices) {
             if (isValidChoice(state, nextCell, choice)) {
-                // Place the choice in the state
-                state[nextCell] = choice;
+                // Create a new state with the choice applied
+                state.put(nextCell, choice);
                 // Recurse to the next depth level
                 depthLimitedSearch(state, depth + 1, solutions);
                 // Backtrack: remove the choice
-                state[nextCell] = 0;
+                state.put(nextCell, 0);
             }
         }
         return false; // No valid choices led to a solution at this depth
@@ -80,51 +68,5 @@ public class SudokuDLSSolver extends SudokuGraph {
     // Getter for the number of nodes expanded
     public int getNodesExpanded() {
         return nodesExpanded;
-    }
-
-    /**
-     * Uses the Least Remaining Value heuristic to select the next cell.
-     * Chooses the empty cell with the fewest legal values.
-     *
-     * @param state The current puzzle state.
-     * @return The index of the next cell to fill.
-     */
-    protected int getNextEmptyCellWithLRV(int[] state) {
-        int minOptions = Integer.MAX_VALUE;
-        int bestCell = -1;
-        for (int i = 0; i < state.length; i++) {
-            if (state[i] == 0) {
-                Set<Integer> options = getValidChoicesForCell(state, i);
-                int optionCount = options.size();
-                if (optionCount < minOptions) {
-                    minOptions = optionCount;
-                    bestCell = i;
-                    if (minOptions == 1) {
-                        break; // Optimal cell found
-                    }
-                }
-            }
-        }
-        return bestCell;
-    }
-
-    /**
-     * Gets the valid choices for a specific cell.
-     *
-     * @param state The current puzzle state.
-     * @param cell  The index of the cell.
-     * @return A set of valid choices for the cell.
-     */
-    protected Set<Integer> getValidChoicesForCell(int[] state, int cell) {
-        Set<Integer> invalidChoices = new HashSet<>();
-        for (Integer neighbor : graph.get(cell)) {
-            int neighborValue = state[neighbor];
-            if (neighborValue != 0) {
-                invalidChoices.add(neighborValue);
-            }
-        }
-        Set<Integer> validChoicesForCell = new HashSet<>(validChoices);
-        validChoicesForCell.removeAll(invalidChoices);
-        return validChoicesForCell;
     }
 }
