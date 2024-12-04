@@ -1,6 +1,8 @@
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.*;
+
 
 /**
  * Main Sudoku solver class that implements a multithreaded solution using BFS and DLS approaches.
@@ -11,16 +13,31 @@ public class Sudoku {
 
         // Input and output streams
         String fileName = "puzzle.txt";
+        String encoding = "UTF-8";
         if (args.length >= 1) {
             fileName = args[0];
         }
-        FileInputStream file_in = new FileInputStream(fileName);
-        Scanner scanner = new Scanner(file_in);
-
         // Create a list to store each line of the puzzle input
+        
+
         List<String> lines = new ArrayList<>();
-        while (scanner.hasNextLine()) {
-            lines.add(scanner.nextLine());
+
+        
+
+        try (FileInputStream fileIn = new FileInputStream(fileName);
+             InputStreamReader reader = new InputStreamReader(fileIn, Charset.forName(encoding));
+             BufferedReader bufferedReader = new BufferedReader(reader)) {
+
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                lines.add(line);
+            }
+        } catch (UnsupportedEncodingException e) {
+            System.err.println("Unsupported encoding: " + encoding);
+        } catch (FileNotFoundException e) {
+            System.err.println("File not found: " + fileName);
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + e.getMessage());
         }
 
         // Determine the size of the Sudoku grid from the input
@@ -100,7 +117,6 @@ public class Sudoku {
         dlsFuture.get();
 
         executor.shutdown();
-        scanner.close();
     }
 
     /**
