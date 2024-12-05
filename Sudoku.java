@@ -66,8 +66,8 @@ public class Sudoku {
         cspSolver.parseInput(lines);
         
 
-        // Create a thread pool with 2 threads to handle parallel solving
-        ExecutorService executor = Executors.newFixedThreadPool(2);
+        // Create a thread pool with 3 threads to handle parallel solving
+        ExecutorService executor = Executors.newFixedThreadPool(nThreads:3);
 
         // Define the BFS solving task
         Callable<Void> bfsTask = () -> {
