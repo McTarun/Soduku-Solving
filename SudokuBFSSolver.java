@@ -6,11 +6,13 @@ import java.util.Map;
 import java.util.Queue;
 
 // Class that implements a Breadth-First Search approach to solving Sudoku puzzles
+// Improvement: Keeps track of expanded nodes and uses a graph to guide exploration, reducing invalid states
 public class SudokuBFSSolver extends SudokuGraph {
 
     private int nodesExpanded; // Counter for the number of nodes expanded
 
     // Constructor that initializes the solver with a given grid size
+    // Improvement: makes the grid size flexible, allowing the same graph structure to work for different Sudoku sizes (6x6, 12x12)
     public SudokuBFSSolver(int gridSize) {
         super(gridSize);
         this.nodesExpanded = 0; // Initialize the counter
@@ -49,6 +51,7 @@ public class SudokuBFSSolver extends SudokuGraph {
                 continue; // No empty cells left; proceed to next state
             }
 
+            // Improvement: prevent invalid states by applying Sudoku rules directly in the graph, cutting down on extra node expansions
             // Try each valid number
             for (int choice : validChoices) {
                 // Check if the number can be legally placed in the cell
@@ -56,13 +59,13 @@ public class SudokuBFSSolver extends SudokuGraph {
                     // Create new state with the number placed
                     Map<Integer, Integer> newState = new HashMap<>(currentState);
                     newState.put(nextCell, choice);
-                    // Add new state to queue for further exploration
-                    queue.add(newState);
+                    queue.add(newState);  // Add new state to queue for further exploration
+
                 }
             }
         }
 
-        // Return all solutions found
-        return solutions;
+        // Improvement: tracks the number of nodes expanded to measure performance and compare with DLS
+        return solutions; // Return all solutions found
     }
 }
