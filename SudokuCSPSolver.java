@@ -11,6 +11,9 @@ import java.util.*;
     3. Forward Checking with Constraint Propagation: The algorithm uses forward checking and constraint propagation to eliminate invalid options before making assignments. This dramatically reduces the search space by avoiding states that would inevitably lead to conflicts.
 
     Unlike traditional DFS/BFS approaches that blindly try every possible value, this CSP implementation leverages the inherent structure of the problem to make informed choices, resulting in much greater efficiency and scalability.
+ 
+ Russell, S., & Norvig, P. (2010). Artificial Intelligence: A Modern Approach (3rd Edition). Chapter 6: Constraint Satisfaction Problems. Specifically, sections on Minimum-Remaining-Values (MRV) and Least-Constraining-Value (LCV) heuristics​
+
  */
 public class SudokuCSPSolver extends SudokuGraph {
 
