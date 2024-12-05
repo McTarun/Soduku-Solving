@@ -87,6 +87,10 @@ Your task includes implementing their algorithm and enhancing it to solve new ch
    - [Comparison Analysis of BFS and DLS in Sudoku Game](https://www.researchgate.net/publication/358642884_Comparison_Analysis_of_Breadth_First_Search_and_Depth_Limited_Search_Algorithms_in_Sudoku_Game)
    - [Solving Rubik’s Cube Using Graph Theory](https://www.researchgate.net/publication/326749335_Solving_Rubik%27s_Cube_Using_Graph_Theory_ICCI-2017)
 
+- **References**:
+   - Russell, S., & Norvig, P. (2010). Artificial Intelligence: A Modern Approach (3rd Edition). Chapter 6: Constraint Satisfaction Problems. Specifically, sections on Minimum-Remaining-Values (MRV) and Least- 
+    Constraining-Value (LCV) heuristics​
+
 ---
 
 ## License
