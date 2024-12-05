@@ -1,234 +1,155 @@
-/* Java program for Sudoku generator  */
-// Following code is based on https://www.geeksforgeeks.org/program-sudoku-generator/ 
-// Updated to to accept parameters as arguments to Generate various Sudoku Dimensions
-import java.lang.*;
-import java.util.Scanner;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.util.*;
+import java.util.concurrent.*;
 
-public class SudokuGenerator
-{
-    int[] mat[];
-    int N; // number of columns/rows.
-    int SRN; // square root of N
-    int K; // No. Of missing digits
 
-    // Constructor
-    SudokuGenerator(int N, int K)
-    {
-        this.N = N;
-        this.K = K;
+/**
+ * Main Sudoku solver class that implements a multithreaded solution using BFS and DLS approaches.
+ */
+public class Sudoku {
 
-        // Compute square root of N
-        Double SRNd = Math.sqrt(N);
-        SRN = SRNd.intValue();
+    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
 
-        mat = new int[N][N];
-    }
-
-    // Sudoku Generator
-    public void fillValues()
-    {
-        // Fill the diagonal of SRN x SRN matrices
-        fillDiagonal();
-
-        // Fill remaining blocks
-        fillRemaining(0, SRN);
-
-        // Remove Randomly K digits to make game
-        removeKDigits();
-    }
-
-    // Fill the diagonal SRN number of SRN x SRN matrices
-    void fillDiagonal()
-    {
-
-        for (int i = 0; i<N; i=i+SRN)
-
-            // for diagonal box, start coordinates->i==j
-            fillBox(i, i);
-    }
-
-    // Returns false if given 3 x 3 block contains num.
-    boolean unUsedInBox(int rowStart, int colStart, int num)
-    {
-        for (int i = 0; i<SRN; i++)
-            for (int j = 0; j<SRN; j++)
-                if (mat[rowStart+i][colStart+j]==num)
-                    return false;
-
-        return true;
-    }
-
-    // Fill a 3 x 3 matrix.
-    void fillBox(int row,int col)
-    {
-        int num;
-        for (int i=0; i<SRN; i++)
-        {
-            for (int j=0; j<SRN; j++)
-            {
-                do
-                {
-                    num = randomGenerator(N);
-                }
-                while (!unUsedInBox(row, col, num));
-
-                mat[row+i][col+j] = num;
-            }
-        }
-    }
-
-    // Random generator
-    int randomGenerator(int num)
-    {
-        return (int) Math.floor((Math.random()*num+1));
-    }
-
-    // Check if safe to put in cell
-    boolean CheckIfSafe(int i,int j,int num)
-    {
-        return (unUsedInRow(i, num) &&
-                unUsedInCol(j, num) &&
-                unUsedInBox(i-i%SRN, j-j%SRN, num));
-    }
-
-    // check in the row for existence
-    boolean unUsedInRow(int i,int num)
-    {
-        for (int j = 0; j<N; j++)
-           if (mat[i][j] == num)
-                return false;
-        return true;
-    }
-
-    // check in the row for existence
-    boolean unUsedInCol(int j,int num)
-    {
-        for (int i = 0; i<N; i++)
-            if (mat[i][j] == num)
-                return false;
-        return true;
-    }
-
-    // A recursive function to fill remaining 
-    // matrix
-    boolean fillRemaining(int i, int j)
-    {
-        //  System.out.println(i+" "+j);
-        if (j>=N && i<N-1)
-        {
-            i = i + 1;
-            j = 0;
-        }
-        if (i>=N && j>=N)
-            return true;
-
-        if (i < SRN)
-        {
-            if (j < SRN)
-                j = SRN;
-        }
-        else if (i < N-SRN)
-        {
-            if (j==(int)(i/SRN)*SRN)
-                j =  j + SRN;
-        }
-        else
-        {
-            if (j == N-SRN)
-            {
-                i = i + 1;
-                j = 0;
-                if (i>=N)
-                    return true;
-            }
-        }
-
-        for (int num = 1; num<=N; num++)
-        {
-            if (CheckIfSafe(i, j, num))
-            {
-                mat[i][j] = num;
-                if (fillRemaining(i, j+1))
-                    return true;
-
-                mat[i][j] = 0;
-            }
-        }
-        return false;
-    }
-
-    // Remove the K no. of digits to
-    // complete game
-    public void removeKDigits()
-    {
-        int count = K;
-        while (count != 0)
-        {
-            int cellId = randomGenerator(N*N)-1;
-
-            // System.out.println(cellId);
-            // extract coordinates i  and j
-            int i = (cellId/N);
-            int j = cellId%N;
-
-            // System.out.println(i+" "+j);
-            if (mat[i][j] != 0)
-            {
-                count--;
-                mat[i][j] = 0;
-            }
-        }
-    }
-
-    // Print sudoku
-    public void printSudoku()
-    {
-        for (int i = 0; i<N; i++)
-        {
-            for (int j = 0; j<N; j++) {
-                if (mat[i][j] == 0) {
-                    System.out.print(".");
-                } else if (mat[i][j] < 10) {
-                    System.out.print(mat[i][j]);
-                } else if (mat[i][j] >= 10 && mat[i][j] <= 25) {
-                    System.out.print((char) ('a' + (mat[i][j] - 10)));
-                } else {
-                    System.out.print(mat[i][j]); // For values greater than 25 or unexpected cases.
-                }
-            }
-            System.out.println();
-        }
-        System.out.println();
-    }
-
-   
-    public static void main(String[] args) {
-        int N, K;
+        // Input and output streams
+        String fileName = "puzzle.txt";
+        String encoding = "UTF-8";
         if (args.length >= 2) {
-            // Try to parse N and K from the command-line arguments
-            try {
-                N = Integer.parseInt(args[0]);
-                K = Integer.parseInt(args[1]);
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid arguments. Please provide integers for N and K.");
-                return;
-            }
-        } else {
-            // If not enough arguments, prompt the user for N and K
-            Scanner input = new Scanner(System.in);
-    
-            System.out.print("Enter N (size of the Sudoku grid): ");
-            N = input.nextInt();
-    
-            System.out.print("Enter K (number of cells to remove): ");
-            K = input.nextInt();
-    
-            input.close();
+            encoding = args[1];
         }
-    
-        SudokuGenerator sudoku = new SudokuGenerator(N, K);
-        sudoku.fillValues();
-        sudoku.printSudoku();
+
+        if (args.length >= 1) {
+            fileName = args[0];
+        }
+
+        // Create a list to store each line of the puzzle input
+        
+
+        List<String> lines = new ArrayList<>();
+
+        
+
+        try (FileInputStream fileIn = new FileInputStream(fileName);
+             InputStreamReader reader = new InputStreamReader(fileIn, Charset.forName(encoding));
+             BufferedReader bufferedReader = new BufferedReader(reader)) {
+
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                lines.add(line);
+            }
+        } catch (UnsupportedEncodingException e) {
+            System.err.println("Unsupported encoding: " + encoding);
+        } catch (FileNotFoundException e) {
+            System.err.println("File not found: " + fileName);
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + e.getMessage());
+        }
+
+        // Determine the size of the Sudoku grid from the input
+        int gridSize = inferGridSize(lines);
+
+        // Ensure the grid size is valid (must be a perfect square)
+        if (!isValidGridSize(gridSize)) {
+            System.out.println("Error: Invalid grid size. Only square grids with sizes that are perfect squares are supported.");
+            return;
+        }
+
+        // Initialize the BFS solver
+        SudokuBFSSolver bfsSolver = new SudokuBFSSolver(gridSize);
+        bfsSolver.parseInput(lines);
+
+        // Initialize the DLS solver
+        SudokuDLSSolver dlsSolver = new SudokuDLSSolver(gridSize, calculateDepthLimit(bfsSolver));
+        dlsSolver.parseInput(lines);
+
+        // Create a thread pool with 2 threads to handle parallel solving
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        // Define the BFS solving task
+        Callable<Void> bfsTask = () -> {
+            System.out.println("Solving using BFS...");
+            long startTime = System.nanoTime();
+            List<Map<Integer, Integer>> bfsSolutions = bfsSolver.solve();
+            long endTime = System.nanoTime();
+            double duration = (endTime - startTime) / 1e9; // Convert to seconds
+            int validSolution = bfsSolutions.size();
+
+            // Write valid solutions to an output file
+            try (PrintWriter writer = new PrintWriter(new FileOutputStream("bfs_solutions.txt"))) {
+                writer.println("Solutions via BFS:");
+                for (Map<Integer, Integer> solution : bfsSolutions) {
+                    bfsSolver.printSolution(writer, solution);
+                }
+                writer.println("Execution Time: " + duration + " seconds");
+                writer.println("Nodes Expanded: " + bfsSolver.getNodesExpanded());
+            }
+            System.out.println("Solutions found via BFS: " + validSolution);
+            System.out.println("BFS Execution Time: " + duration + " seconds");
+            System.out.println("BFS Nodes Expanded: " + bfsSolver.getNodesExpanded());
+            return null;
+        };
+
+        // Define the DLS solving task
+        Callable<Void> dlsTask = () -> {
+            System.out.println("Solving using DLS...");
+            long startTime = System.nanoTime();
+            List<Map<Integer, Integer>> dlsSolutions = dlsSolver.solve();
+            long endTime = System.nanoTime();
+            double duration = (endTime - startTime) / 1e9; // Convert to seconds
+            int validSolution = dlsSolutions.size();
+
+            // Write valid solutions to an output file
+            try (PrintWriter writer = new PrintWriter(new FileOutputStream("dls_solutions.txt"))) {
+                writer.println("Solutions via DLS:");
+                for (Map<Integer, Integer> solution : dlsSolutions) {
+                    dlsSolver.printSolution(writer, solution);
+                }
+                writer.println("Execution Time: " + duration + " seconds");
+                writer.println("Nodes Expanded: " + dlsSolver.getNodesExpanded());
+            }
+            System.out.println("Solutions found via DLS: " + validSolution);
+            System.out.println("DLS Execution Time: " + duration + " seconds");
+            System.out.println("DLS Nodes Expanded: " + dlsSolver.getNodesExpanded());
+            return null;
+        };
+
+        // Submit tasks to executor
+        Future<Void> bfsFuture = executor.submit(bfsTask);
+        Future<Void> dlsFuture = executor.submit(dlsTask);
+
+        // Wait for completion
+        bfsFuture.get();
+        dlsFuture.get();
+
+        executor.shutdown();
+    }
+
+    /**
+     * Determines the size of the Sudoku grid based on input dimensions.
+     * Assumes the grid is square (same number of rows and columns).
+     * @param lines List of input lines representing the puzzle
+     * @return The size of one dimension of the grid
+     */
+    private static int inferGridSize(List<String> lines) {
+        return lines.size();
+    }
+
+    /**
+     * Validates that the grid size is a perfect square.
+     * @param gridSize The size to validate
+     * @return true if the size is valid (perfect square), false otherwise
+     */
+    private static boolean isValidGridSize(int gridSize) {
+        int sqrt = (int) Math.sqrt(gridSize);
+        return sqrt * sqrt == gridSize;
+    }
+
+    /**
+     * Calculates the maximum depth for DLS (Depth-Limited Search) based on empty cells.
+     * @param graph The Sudoku puzzle graph
+     * @return The number of empty cells in the puzzle
+     */
+    private static int calculateDepthLimit(SudokuGraph graph) {
+        return (int) graph.getPuzzle().values().stream().filter(v -> v == 0).count();
     }
 }
-// This code is modified by Susobhan Akhuli
