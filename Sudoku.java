@@ -127,7 +127,7 @@ public class Sudoku {
 
             // Write valid solutions to an output file
             try (PrintWriter writer = new PrintWriter(new FileOutputStream("csp_solutions.txt"))) {
-                writer.println("Solutions via CSOSolutions:");
+                writer.println("Solutions via CSP Solutions:");
                 for (Map<Integer, Integer> solution : breamSolutions) {
                     dlsSolver.printSolution(writer, solution);
                 }
