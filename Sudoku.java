@@ -50,7 +50,7 @@ public class Sudoku {
 
         // Ensure the grid size is valid (must be a perfect square)
         if (!isValidGridSize(gridSize)) {
-            System.out.println("Error: Invalid grid size. Only square grids with sizes that are perfect squares are supported.");
+            System.out.println("Error: Invalid grid size. Only square grids with sizes that are perfect squares are supported. " + gridSize);
             return;
         }
 
@@ -61,6 +61,10 @@ public class Sudoku {
         // Initialize the DLS solver
         SudokuDLSSolver dlsSolver = new SudokuDLSSolver(gridSize, calculateDepthLimit(bfsSolver));
         dlsSolver.parseInput(lines);
+
+        SudokuCSPSolver cspSolver = new SudokuCSPSolver(gridSize);
+        cspSolver.parseInput(lines);
+        
 
         // Create a thread pool with 2 threads to handle parallel solving
         ExecutorService executor = Executors.newFixedThreadPool(2);
@@ -113,13 +117,39 @@ public class Sudoku {
             return null;
         };
 
+        Callable<Void> cspTask = () -> {
+            System.out.println("Solving using csp...");
+            long startTime = System.nanoTime();
+            List<Map<Integer, Integer>> breamSolutions = cspSolver.solve();
+            long endTime = System.nanoTime();
+            double duration = (endTime - startTime) / 1e9; // Convert to seconds
+            int validSolution = breamSolutions.size();
+
+            // Write valid solutions to an output file
+            try (PrintWriter writer = new PrintWriter(new FileOutputStream("csp_solutions.txt"))) {
+                writer.println("Solutions via CSOSolutions:");
+                for (Map<Integer, Integer> solution : breamSolutions) {
+                    dlsSolver.printSolution(writer, solution);
+                }
+                writer.println("Execution Time: " + duration + " seconds");
+                writer.println("Nodes Expanded: " + cspSolver.getNodesExpanded());
+            }
+            System.out.println("Solutions found via csp: " + validSolution);
+            System.out.println("CSP Execution Time: " + duration + " seconds");
+            System.out.println("CSP Nodes Expanded: " + cspSolver.getNodesExpanded());
+            return null;
+        };
+
+
         // Submit tasks to executor
-        Future<Void> bfsFuture = executor.submit(bfsTask);
         Future<Void> dlsFuture = executor.submit(dlsTask);
+        Future<Void> cspFuture = executor.submit(cspTask);
+        Future<Void> bfsFuture = executor.submit(bfsTask);
 
         // Wait for completion
-        bfsFuture.get();
+        cspFuture.get();
         dlsFuture.get();
+        bfsFuture.get();
 
         executor.shutdown();
     }
@@ -153,3 +183,4 @@ public class Sudoku {
         return (int) graph.getPuzzle().values().stream().filter(v -> v == 0).count();
     }
 }
+
