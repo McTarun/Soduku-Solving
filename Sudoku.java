@@ -118,7 +118,7 @@ public class Sudoku {
         };
 
         Callable<Void> cspTask = () -> {
-            System.out.println("Solving using csp...");
+            System.out.println("Solving using CSP...");
             long startTime = System.nanoTime();
             List<Map<Integer, Integer>> breamSolutions = cspSolver.solve();
             long endTime = System.nanoTime();
@@ -134,7 +134,7 @@ public class Sudoku {
                 writer.println("Execution Time: " + duration + " seconds");
                 writer.println("Nodes Expanded: " + cspSolver.getNodesExpanded());
             }
-            System.out.println("Solutions found via csp: " + validSolution);
+            System.out.println("Solutions found via CSP: " + validSolution);
             System.out.println("CSP Execution Time: " + duration + " seconds");
             System.out.println("CSP Nodes Expanded: " + cspSolver.getNodesExpanded());
             return null;
