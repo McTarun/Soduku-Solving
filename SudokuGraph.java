@@ -99,6 +99,8 @@ public abstract class SudokuGraph {
      * - All cells in the same column
      * - All cells in the same section (box)
      */
+
+    // Improvement: represents the Sudoku grid as a graph to enforce row, column, and box rules, making it much easier to avoid invalid states in BFS and DLS
     private void buildGraph() {
         // Process each cell in the grid
         for (int row = 0; row < gridSize; row++) {
@@ -110,6 +112,7 @@ public abstract class SudokuGraph {
                 graph.putIfAbsent(cell, new HashSet<>());
                 
                 // Add all cells in the same row as constraints
+                // Add row, column, and section constraints
                 for (int k = 0; k < gridSize; k++) {
                     graph.get(cell).add(row * gridSize + k);  // Add all cells in current row
                     graph.get(cell).add(k * gridSize + col);  // Add all cells in current column
